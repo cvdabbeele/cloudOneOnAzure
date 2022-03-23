@@ -9,8 +9,8 @@ cd $STARTDIR
 
 
 STARTDIR=`pwd`
-#echo "usage: add the name of the app to be pushed as a parameter"
-#echo "       if no parameter is added, ${APP1} is pushed"
+#echo "usage: add the name of the app to be pushed as a parameter"  THIS IS STILL WIP 
+#echo "       if no parameter is added, ${APP1} is pushed"   
 if [[ -z ${1} ]]; then
     STARTDIR=`pwd`
     cd ../apps/moneyx

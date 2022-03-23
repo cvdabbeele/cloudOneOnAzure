@@ -367,6 +367,6 @@ fi
 #az devops invoke --http-method patch --area build --resource authorizedresources --debug --route-parameters project=${C1PROJECT} --api-version 5.0-preview --in-file ./service-endpoint-kubernetes.json --encoding ascii
 
 createPipeline ${APP1}
-createPipeline ${APP2}
-createPipeline ${APP3}
+#createPipeline ${APP2}
+#createPipeline ${APP3}
 

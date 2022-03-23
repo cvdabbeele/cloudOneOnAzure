@@ -253,18 +253,17 @@ done
 # quick-check other variables
 #if  [ -z "$DOCKERHUB_USERNAME" ]; then echo DOCKERHUB_USERNAME must be set && VARSAREOK=false; fi
 #if  [ -z "$DOCKERHUB_PASSWORD" ]; then echo DOCKERHUB_PASSWORD must be set && VARSAREOK=false; fi
-if  [ -z "$DSSC_PASSWORD" ]; then printf '%s\n' "DSSC_PASSWORD must be set && VARSAREOK=false"; fi
-if  [ -z "$DSSC_REGPASSWORD" ]; then printf '%s\n' "DSSC_REGPASSWORD must be set && VARSAREOK=false"; fi
-if  [ -z "$DSSC_NAMESPACE" ]; then printf '%s\n' "DSSC_NAMESPACE must be set && VARSAREOK=false"; fi
-if  [ -z "$DSSC_USERNAME" ]; then printf '%s\n' "DSSC_USERNAME must be set && VARSAREOK=false"; fi
-if  [ -z "$DSSC_TEMPPW" ]; then printf '%s\n' "DSSC_TEMPPW must be set && VARSAREOK=false"; fi
-if  [ -z "$DSSC_HOST" ]; then printf '%s\n' "DSSC_HOST must be set && VARSAREOK=false"; fi
-if  [ -z "$DSSC_REGUSER" ]; then printf '%s\n' "DSSC_REGUSER must be set && VARSAREOK=false"; fi
+if  [ -z "$DSSC_PASSWORD" ]; then printf '%s\n' "DSSC_PASSWORD must be set" && VARSAREOK=false; fi
+if  [ -z "$DSSC_REGPASSWORD" ]; then printf '%s\n' "DSSC_REGPASSWORD must be set" && VARSAREOK=false; fi
+if  [ -z "$DSSC_NAMESPACE" ]; then printf '%s\n' "DSSC_NAMESPACE must be set" && VARSAREOK=false; fi
+if  [ -z "$DSSC_USERNAME" ]; then printf '%s\n' "DSSC_USERNAME must be set" && VARSAREOK=false; fi
+if  [ -z "$DSSC_TEMPPW" ]; then printf '%s\n' "DSSC_TEMPPW must be set" && VARSAREOK=false; fi
+if  [ -z "$DSSC_HOST" ]; then printf '%s\n' "DSSC_HOST must be set" && VARSAREOK=false; fi
+if  [ -z "$DSSC_REGUSER" ]; then printf '%s\n' "DSSC_REGUSER must be set" && VARSAREOK=false; fi
 
-if  [ -z "$APP1_GIT_URL" ]; then printf '%s\n' "APP1_GIT_URL must be set && VARSAREOK=false"; fi
-if  [ -z "$APP2_GIT_URL" ]; then printf '%s\n' "APP2_GIT_URL must be set && VARSAREOK=false"; fi
-if  [ -z "$APP3_GIT_URL" ]; then printf '%s\n' "APP3_GIT_URL must be set && VARSAREOK=false"; fi
-
+if  [ -z "$APP1_GIT_URL" ]; then printf '%s\n' "APP1_GIT_URL must be set" && VARSAREOK=false; fi
+if  [ -z "$APP2_GIT_URL" ]; then printf '%s\n' "APP2_GIT_URL must be set" && VARSAREOK=false; fi
+if  [ -z "$APP3_GIT_URL" ]; then printf '%s\n' "APP3_GIT_URL must be set" && VARSAREOK=false; fi
 
 if [[ ${VARSAREOK} == "true" ]]; then
   echo "All variables checked out ok"
@@ -272,7 +271,6 @@ else
   echo "Please correct the above-mentioned variables in your 00_define_vars.sh file"
   read -p "Press CTRL-C to exit script, or Enter to continue anyway (script will fail)"
 fi
-
 
 #TODO: AZURE PAT checking ?
 #TDOD 

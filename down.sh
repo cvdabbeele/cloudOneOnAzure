@@ -85,21 +85,18 @@ readarray -t DUMMYARRAYTOFIXSYNTAXCOLORINGINVSCODE <<< `pwd `
 for i in "${!C1ASGROUPS[@]}"
 do
   #printf "%s\n" "C1AS: found group ${C1ASGROUPS[$i]} with ID ${C1ASGROUPIDS[$i]}"
-  if [[ "${C1ASGROUPS[$i]}" == "${C1PROJECT^^}-${APP1^^}" ]]; 
-  then
+  if [[ "${C1ASGROUPS[$i]}" == "${C1PROJECT^^}-${APP1^^}" ]]; then
     printf "%s\n" "C1AS: Removing old Group object ${C1PROJECT^^}-${APP1^^}"
     curl --silent --location --request DELETE "${C1ASAPIURL}/accounts/groups/${C1ASGROUPIDS[$i]}"   --header 'Content-Type: application/json' --header "${C1AUTHHEADER}" --header 'api-version: v1' 
   fi
-  #if [[ "${C1ASGROUPS[$i]}" == "${C1PROJECT^^}-${APP2^^}" ]]; 
-  #then
-  #  printf "%s\n" "Deleting old Group object ${C1PROJECT^^}-${APP2^^} in C1AS"
-  #  curl --silent --location --request DELETE "${C1ASAPIURL}/accounts/groups/${C1ASGROUPIDS[$i]}"   --header 'Content-Type: application/json' --header "${C1AUTHHEADER}" --header 'api-version: v1' 
-  #fi
-  #if [[ "${C1ASGROUPS[$i]}" == "${C1PROJECT^^}-${APP3^^}" ]]; 
-  #then
-  #  printf "%s\n" "Deleting old Group object ${C1PROJECT^^}-${APP3^^} in C1AS"
-  #  curl --silent --location --request DELETE "${C1ASAPIURL}/accounts/groups/${C1ASGROUPIDS[$i]}"   --header 'Content-Type: application/json' --header "${C1AUTHHEADER}" --header 'api-version: v1' 
-  #fi
+  if [[ "${C1ASGROUPS[$i]}" == "${C1PROJECT^^}-${APP2^^}" ]]; then
+    printf "%s\n" "Deleting old Group object ${C1PROJECT^^}-${APP2^^} in C1AS"
+    curl --silent --location --request DELETE "${C1ASAPIURL}/accounts/groups/${C1ASGROUPIDS[$i]}"   --header 'Content-Type: application/json' --header "${C1AUTHHEADER}" --header 'api-version: v1' 
+  fi
+  if [[ "${C1ASGROUPS[$i]}" == "${C1PROJECT^^}-${APP3^^}" ]]; then
+    printf "%s\n" "Deleting old Group object ${C1PROJECT^^}-${APP3^^} in C1AS"
+    curl --silent --location --request DELETE "${C1ASAPIURL}/accounts/groups/${C1ASGROUPIDS[$i]}"   --header 'Content-Type: application/json' --header "${C1AUTHHEADER}" --header 'api-version: v1' 
+  fi
 
 done 
 

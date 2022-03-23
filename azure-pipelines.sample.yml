@@ -1,0 +1,201 @@
+# update: 220321-19:33 OK
+# Deploy to Azure Kubernetes Service
+# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
+
+
+# Build: https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+# Deploy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-kubernetes?view=azure-devops
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  # note on ${} vs $(): 
+  #   variables with $() are pushed into the pipeline when the actual pipeline is created
+  #   somehow some variables could not be pushed at that moment, so
+  #   variables with ${} are replaced by the script when the azure-pipelines.sample.yml is copied to an actual azure-pipeline.yml, those become hardcoded in the azure-pipeline.yml
+
+  serviceConnectionForDockerRegistry: '${SERVICECONNECTIONFORDOCKERREGISTRY}'
+  serviceConnectionForKubernetes: '${SERVICECONNECTIONFORKUBERNETES}'
+  imageRepository: '${IMAGEREPOSITORY}'
+  containerRegistry: '${CONTAINERREGISTRY}'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+  imagePullSecret: '${IMAGEPULLSECRET}'
+  environment: '${APP}'
+  _dssc_host: '$(DSSC_HOST)'
+  _dssc_username: '$(DSSC_USERNAME)'
+  _dssc_temppw: '$(DSSC_TEMPPW)'
+  _dssc_password: '$(DSSC_PASSWORD)'
+  _dssc_reguser: '$(DSSC_REGUSER)'
+  _dssc_regpassword: '$(DSSC_REGPASSWORD)'
+  _trend_ap_key: '$(TREND_AP_KEY)'
+  _trend_ap_secret: '$(TREND_AP_SECRET)'
+  _azure_acr_loginserver: '$(AZURE_ACR_LOGINSERVER)'
+  _c1project: '$(AZURE_PROJECT)'
+  _tag: '$(tag)'
+  _azure_project_uid: '${AZURE_PROJECT_UID}'
+  _acr_username: '$(ACR_USERNAME)'
+  _acr_password: '$(ACR_PASSWORD)'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - script: |
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo "listing variables at runtim for educational / debugging purposes"
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo imageRepository= $(imageRepository)
+        echo dockerfilePath= $(dockerfilePath)
+        echo serviceConnectionForDockerRegistry= $(serviceConnectionForDockerRegistry)
+        echo containerRegistry= $(containerRegistry)
+        echo serviceConnectionForDockerRegistry= "$(serviceConnectionForDockerRegistry)"
+        echo serviceConnectionForKubernetes= "${SERVICECONNECTIONFORKUBERNETES}"
+        echo imageRepository= "$(imageRepository)"
+        echo containerRegistry= "$(containerRegistry)"
+        echo dockerfilePath= "dockerfilePath"
+        echo tag= "$(Build.BuildId)"
+        echo imagePullSecret= "$(imagePullSecret)"
+        echo environment= "$(APP)"
+        echo _dssc_host= "$(_dssc_host)"
+        echo _dssc_username= "$(_dssc_username)"
+        echo _dssc_temppw= "$(_dssc_temppw)"
+        echo _dssc_password= "$(_dssc_password)"
+        echo _dssc_reguser= "$(_dssc_reguser)"
+        echo _dssc_regpassword= "$(_dssc_regpassword)"
+        echo _trend_ap_key= "$(_trend_ap_key)"
+        echo _trend_ap_secret= "$(_trend_ap_secret)"
+        echo _azure_acr_loginserver= "$(_azure_acr_loginserver)"
+        echo _c1project= "$(_c1project)"
+        echo _tag= "$(_tag)"
+        echo _azure_project_uid= "$(_azure_project_uid)"
+        echo _acr_username= "$(_acr_username)"
+        echo _acr_password= "$(_acr_password)"
+        echo _buildname= "$(_buildname)"
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+    - task: Docker@2
+      displayName: Build
+      inputs:
+        command: build
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(serviceConnectionForDockerRegistry)
+        tags: |
+          $(tag)
+
+    # Scan the Container Image with Deep Security Smart Check
+    - script: |
+        echo 'Adding self-signed certificate of SmartCheck to trusted certificates for Docker'
+        openssl s_client -showcerts -connect $(_dssc_host):443 < /dev/null | \
+          sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > $(_dssc_host).crt
+        sudo cp $(_dssc_host).crt /usr/local/share/ca-certificates/$(_dssc_host).crt
+        sudo mkdir -p /etc/docker/certs.d/$(_dssc_host):5000
+        sudo cp $(_dssc_host).crt /etc/docker/certs.d/$(_dssc_host):5000/ca.crt
+        sudo update-ca-certificates
+        echo "------------ retagging image ----------"
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo "for educational purposes"
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo docker image ls
+        docker      image ls
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo docker tag `docker image ls ***.azurecr.io/moneyx -q` $(imageRepository):$(_tag)
+        docker      tag `docker image ls ***.azurecr.io/moneyx -q` $(imageRepository):$(_tag)
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo docker image ls
+        docker      image ls
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+        echo 'Sending Image to scanner for preRegistry scanning'
+        docker run  -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.cache/:/root/.cache/ deepsecurity/smartcheck-scan-action  --preregistry-scan --preregistry-password=$(_dssc_regpassword) --preregistry-user=$(_dssc_reguser) --image-name=$(imageRepository):$(_tag) --smartcheck-host=$(_dssc_host) --smartcheck-user=$(_dssc_username) --smartcheck-password=$(_dssc_password) --insecure-skip-tls-verify         --insecure-skip-registry-tls-verify  --findings-threshold='{"malware": 0, "vulnerabilities": { "defcon1": 0, "critical": 0, "high": 0 }, "contents": { "defcon1": 0, "critical": 0, "high": 0 }, "checklists": { "defcon1": 0, "critical": 0, "high": 0 }}'
+      displayName: "Scaning image pre-registry"
+
+    - script: |
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo docker login  $(_azure_project_uid).azurecr.io -u $(_acr_username) -p $(_acr_password) 
+        docker      login  $(_azure_project_uid).azurecr.io -u $(_acr_username) -p $(acr_password)
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo docker tag  $(imageRepository):$(_tag)   $(_azure_acr_loginserver)/$(imageRepository):$(_tag)
+        docker      tag  $(imageRepository):$(_tag)   $(_azure_acr_loginserver)/$(imageRepository):$(_tag) 
+        echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        docker push $(_azure_acr_loginserver)/$(imageRepository):$(_tag)
+
+    - script: |
+        echo 'Sending Image to scanner'
+        docker run  -v /var/run/docker.sock:/var/run/docker.sock -v \$HOME/.cache/:/root/.cache/ deepsecurity/smartcheck-scan-action \
+        --image-name=$(_azure_acr_loginserver)/$(imageRepository):$(_tag) \
+        --smartcheck-host="$(_dssc_host)" \
+        --smartcheck-user="$(_dssc_username)" \
+        --smartcheck-password="$(_dssc_password)" \
+        --image-pull-auth='{"username": "'$(_acr_username)'","password": "'$(_acr_password)'"}' \
+        --insecure-skip-tls-verify \
+        --insecure-skip-registry-tls-verify \
+        --findings-threshold='{"malware": 0, "vulnerabilities": { "defcon1": 0, "critical": 0, "high": 0 }, "contents": { "defcon1": 0, "critical": 0, "high": 0 }, "checklists": { "defcon1": 0, "critical": 0, "high": 0 }}'
+      displayName: "Scanning image in ACR"
+
+    - upload: manifests
+      artifact: manifests
+      displayName: "Upload manifests:"
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: '${APP}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Creating imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(serviceConnectionForDockerRegistry)
+              kubernetesServiceConnection: ${SERVICECONNECTIONFORKUBERNETES}
+
+          # Set Environment Variables for Cloud One Application Security
+          - script: |
+              sed -i 's|_TREND_AP_KEY|$(TREND_AP_KEY)|' $(Pipeline.Workspace)/manifests/deployment.yml
+              sed -i 's|_TREND_AP_SECRET|$(TREND_AP_SECRET)|' $(Pipeline.Workspace)/manifests/deployment.yml
+              echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              echo Pipeline.Workspace = $(Pipeline.Workspace)
+              echo imagePullSecret =  $(imagePullSecret)
+              echo containerRegistry = $(containerRegistry)
+              echo imageRepository = $(imageRepository)
+              echo tag = $(tag)
+              echo SERVICECONNECTIONFORKUBERNETES= ${SERVICECONNECTIONFORKUBERNETES}
+              echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            displayName: "Configure Cloud One Application Security"
+
+          - task: KubernetesManifest@0
+            displayName: Deploying to Kubernetes cluster
+            inputs:
+              action: deploy
+              namespace: 'default'
+              manifests: |
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
+              kubernetesServiceConnection: ${SERVICECONNECTIONFORKUBERNETES}
+              

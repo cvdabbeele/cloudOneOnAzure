@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: c1appsecmoneyx
+  labels:
+    app: c1appsecmoneyx
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+    name: c1appsecmoneyx
+    targetPort: 8080
+  selector:
+    app: c1appsecmoneyx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: c1appsecmoneyx
+  name: c1appsecmoneyx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: c1appsecmoneyx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: c1appsecmoneyx
+    spec:
+      containers:
+      - name: c1appsecmoneyx
+        image: c1appsecmoneyx.azurecr.io/c1appsecmoneyx:latest
+        imagePullPolicy: Always
+        env:
+        - name: TREND_AP_KEY
+          value: $APPSEC_KEY
+        - name: TREND_AP_SECRET
+          value: $APPSEC_SECRET
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+      - name: regcred

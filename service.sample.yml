@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: "${IMAGEREPOSITORY}"
+spec:
+    type: LoadBalancer
+    ports:
+    - port: ${PORT}
+    selector:
+        app: "${IMAGEREPOSITORY}"

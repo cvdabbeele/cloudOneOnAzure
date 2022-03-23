@@ -1,0 +1,68 @@
+
+
+    # Scan the Container Image with Deep Security Smart Check
+    - script: |
+
+        echo 'preparing things'
+        openssl s_client -showcerts -connect $(DSSC_HOST):443 < /dev/null | \
+          sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > $(DSSC_HOST).crt
+        sudo cp $(DSSC_HOST).crt /usr/local/share/ca-certificates/$(DSSC_HOST).crt
+        sudo mkdir -p /etc/docker/certs.d/$(DSSC_HOST):5000
+        sudo cp $(DSSC_HOST).crt /etc/docker/certs.d/$(DSSC_HOST):5000/ca.crt
+        sudo update-ca-certificates
+
+        echo 'Sending Image to scanner'
+        docker run  -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.cache/:/root/.cache/ deepsecurity/smartcheck-scan-action \
+        --preregistry-scan \
+        --preregistry-password=$(DSSC_REGPASSWORD) \
+        --preregistry-user=$(DSSC_REGUSER) \
+        --image-name=$(containerRegistry)/$(imageRepository):$(tag) \
+        --smartcheck-host=$(DSSC_HOST) \
+        --smartcheck-user=$(DSSC_USERNAME) \
+        --smartcheck-password=$(DSSC_PASSWORD) \
+        --insecure-skip-tls-verify \
+        --insecure-skip-registry-tls-verify \
+        --findings-threshold='{"malware": 0, "vulnerabilities": { "defcon1": 0, "critical": 0, "high": 0 }, "contents": { "defcon1": 0, "critical": 0, "high": 0 }, "checklists": { "defcon1": 0, "critical": 0, "high": 0 }}'
+      displayName: "Scan pre-registry"
+
+    - task: Docker@2
+      displayName: Push an image
+      inputs:
+        command: push
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(SERVICECONNECTIONFORDOCKERREGISTRY)
+        tags: |
+          $(tag)
+
+    - script: |
+        echo 'preparing things'
+        openssl s_client -showcerts -connect $(DSSC_HOST):443 < /dev/null | \
+          sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > $(DSSC_HOST).crt
+        sudo cp $(DSSC_HOST).crt /usr/local/share/ca-certificates/$(DSSC_HOST).crt
+        sudo mkdir -p /etc/docker/certs.d/$(DSSC_HOST):5000
+        sudo cp $(DSSC_HOST).crt /etc/docker/certs.d/$(DSSC_HOST):5000/ca.crt
+        sudo update-ca-certificates
+
+        echo 'Sending Image to scanner'
+        docker run  -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.cache/:/root/.cache/ deepsecurity/smartcheck-scan-action \
+        --image-name=$(containerRegistry)/$(imageRepository):$(tag) \
+        --smartcheck-host=$(DSSC_HOST) \
+        --smartcheck-user=$(DSSC_USERNAME) \
+        --smartcheck-password=$(DSSC_PASSWORD) \
+        --image-pull-auth="{\"username\":\"$(ACR_USERNAME)\",\"password\":\"$(ACR_PASSWORD)\"}" \
+        --insecure-skip-tls-verify \
+        --insecure-skip-registry-tls-verify \
+        --findings-threshold='{"malware": 0, "vulnerabilities": { "defcon1": 0, "critical": 0, "high": 0 }, "contents": { "defcon1": 0, "critical": 0, "high": 0 }, "checklists": { "defcon1": 0, "critical": 0, "high": 0 }}'
+      displayName: "Scan in registry"
+
+    #Info: login to ACR
+    #docker login c1appsecmoneyx.azurecr.io  -u $SP_APP_ID -p $SP_PASSWD
+    #smartcheck-scan-action login to ACR
+    #DSSC_IMAGE_PULL_AUTH: '{"username": "$(SP_APP_ID)","password": "$(SP_PASSWD)"}'
+      
+    # To Do: use "exit 1"  to stop the pipeline
+    # end of Scan the Container Image with Deep Security Smart Check
+
+
+

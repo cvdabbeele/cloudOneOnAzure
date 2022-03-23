@@ -1,0 +1,24 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "${IMAGEREPOSITORY}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "${IMAGEREPOSITORY}"
+  template:
+    metadata:
+      labels:
+        app: "${IMAGEREPOSITORY}" 
+    spec:
+      containers:
+        - name: "${IMAGEREPOSITORY}" 
+          image: "${CONTAINERREGISTRY}/${IMAGEREPOSITORY}"
+          ports:
+          - containerPort: ${PORT}
+          env: 
+          - name: TREND_AP_KEY
+            value: "${TREND_AP_KEY}"
+          - name: TREND_AP_SECRET
+            value: "${TREND_AP_SECRET}"

@@ -1,0 +1,8 @@
+
+          # Set Environment Variables for Cloud One Application Security
+          - script: |
+              sed -i 's|_TREND_AP_KEY|$(TREND_AP_KEY)|' $(Pipeline.Workspace)/manifests/deployment.yml
+              sed -i 's|_TREND_AP_SECRET|$(TREND_AP_SECRET)|' $(Pipeline.Workspace)/manifests/deployment.yml
+            displayName: "Configure Cloud One Application Security"
+
+

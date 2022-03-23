@@ -40,7 +40,7 @@ You should see one (or two) pipeline runs, they should both be "failed"
 
 ### 3. Start 2 additional pipeline-runs of MoneyX
 
-When we will demo, we want to have a few MoneyX pipeline-runs available, each with different settings.We will trigger the following 3 pipeline-runs:
+Before we will demo, we want to have a few MoneyX pipeline-runs available, each with different settings.  We will trigger the following 3 pipeline-runs:
 
 1. **a pipeline-run with low security threshold** (where the number of allow vulenrabilities is set low). This pipeline-run will fail for the moneyX application because SmartCheck will find more vulnerabilities than the threshold setting that we configure for this pipeline-run.  The pipeline will break and this will prevent the image from being pushed to the registry.
    This pipeline-run will be triggered the script **./pushWithLowSecurityThresholds.sh** (see below)
@@ -50,7 +50,7 @@ When we will demo, we want to have a few MoneyX pipeline-runs available, each wi
    The scipt **pushWithMalware.sh** will modify the Dockerfile so that it will download Eicar and include it in the image at build time.  Then the pipeline will build an infected image out of it.  The script also has the threshold settings set to "high", so the scanner will allow the infected image to be pushed to the registry.  But then when the pipeline tries to deploy the image, C1CS will prevent it (see later)
    <br/>
 
-Run the scripts:
+To do the aboe, run the following 3 scripts:
 
 ```shell
 ./pushWitLowSecurityThresholds.sh
@@ -344,14 +344,19 @@ kubectl get pods -A | grep nginx
 
 # Pull and scan additional images
 
-To get more content for a demo, you can pull and scan additional images in SmartCheck.
+To get more content for a demo, you can pull and scan additional images in SmartCheck.   
 
 ```bash
 cd addOns
 . ./up.scanImageAz.sh
 ```
 
-**Note**
+**BEARE**
 This will pull close to a dozen images from DockerHub and push them to your ACR registry  for scanning.
-Keep in mind that this process may take several minutes and should best be run quite in advance of delivering a demo.
-To pull a s
+Keep in mind that this process may take more than 1 hour and should best be run quite in advance of delivering a demo.  
+To pull a single image from Dockerhub, e.g. `tomcat`, you can run:
+
+```bash
+cd addOns
+. ./up.scanImageAz.sh tomcat
+```

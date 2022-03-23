@@ -144,7 +144,7 @@ fi
 # printf "%s\n" "Checking Resource Groups"
 AZURE_GROUPS=(`az group list -o json| jq -r '.[].name'` )
 for i in "${!AZURE_GROUPS[@]}"; do
-  if [[ "${AZURE_GROUPS[$i]}" =~ "${C1PROJECT}" ]]; then
+  if [[ "${AZURE_GROUPS[$i]}" == "${C1PROJECT}" ]]; then
     printf '%s\n' "Deleting Resource Group: ${AZURE_GROUPS[$i]}  Please be patient, this can take up to 10 minutes... (started at:`date`)"
     starttime="$(date +%s)"
     az group delete --name ${AZURE_GROUPS[$i]} --yes

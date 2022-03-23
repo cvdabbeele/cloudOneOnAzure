@@ -7,7 +7,6 @@ printf '%s \n'  "-----------------------"
 # Check required variables
 VARSAREOK=true
 
-
 if  [ -z "$AZURE_LOCATION" ]; then echo AZURE_LOCATION must be set && VARSAREOK=false; fi
 if  [ -z "${C1PROJECT}" ]; then echo ${C1PROJECT} must be set && VARSAREOK=false; fi
 if  [ -z "$AZUREAKSNODES" ]; then echo AZUREAKSNODES must be set && VARSAREOK=false; fi

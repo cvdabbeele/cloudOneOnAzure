@@ -167,7 +167,7 @@ else
 fi
 
 #get ${AZURE_PROJECT_UID}
-if [ -f "${AZURE_PROJECT}_UID.txt" ]; then
+if [ -f "${C1PROJECT}_UID.txt" ]; then
     export AZURE_PROJECT_UID=`cat ${C1PROJECT}_UID.txt`
     #delete ServicePrincipals
     # Note the following command deletes all SPs that CONTAIN "${AZURE_PROJECT_UID}" in the name
@@ -186,7 +186,7 @@ if [ -f "${AZURE_PROJECT}_UID.txt" ]; then
       az devops service-endpoint delete --id ${SE} -y
     done
 else
-  printf "%s" "Could not find file with Project UID; could not delete Service Principals and Service Connections.  Manual Cleanup may be needed"
+  printf "%s" "Could not find file ${C1PROJECT}_UID.txt with Project UID; could not delete Service Principals and Service Connections.  Manual Cleanup may be needed"
 fi
 
 printf '%s \n' "Deleting ~/.kube/config "

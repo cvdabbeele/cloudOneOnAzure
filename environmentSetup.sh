@@ -69,8 +69,8 @@ export DSSC_HOST_FILTER=".status.loadBalancer.ingress[].ip"
 #generate the names of the apps from the git URL
 export APP1=moneyx
 #export APP1=`echo ${APP1_GIT_URL} | awk -F"/" '{print $NF}' | awk -F"." '{ print $1 }' | tr -cd '[:alnum:]'| awk '{ print tolower($1) }'`
-#export APP2=`echo ${APP2_GIT_URL} | awk -F"/" '{print $NF}' | awk -F"." '{ print $1 }' | tr -cd '[:alnum:]'| awk '{ print tolower($1) }'`
-#export APP3=`echo ${APP3_GIT_URL} | awk -F"/" '{print $NF}' | awk -F"." '{ print $1 }' | tr -cd '[:alnum:]'| awk '{ print tolower($1) }'`
+export APP2=`echo ${APP2_GIT_URL} | awk -F"/" '{print $NF}' | awk -F"." '{ print $1 }' | tr -cd '[:alnum:]'| awk '{ print tolower($1) }'`
+export APP3=`echo ${APP3_GIT_URL} | awk -F"/" '{print $NF}' | awk -F"." '{ print $1 }' | tr -cd '[:alnum:]'| awk '{ print tolower($1) }'`
 
 # checking dockerlogin
 printf "%s" "Validating Docker login..."
@@ -262,8 +262,8 @@ if  [ -z "$DSSC_HOST" ]; then printf '%s\n' "DSSC_HOST must be set && VARSAREOK=
 if  [ -z "$DSSC_REGUSER" ]; then printf '%s\n' "DSSC_REGUSER must be set && VARSAREOK=false"; fi
 
 if  [ -z "$APP1_GIT_URL" ]; then printf '%s\n' "APP1_GIT_URL must be set && VARSAREOK=false"; fi
-#if  [ -z "$APP2_GIT_URL" ]; then printf '%s\n' "APP2_GIT_URL must be set && VARSAREOK=false"; fi
-#if  [ -z "$APP3_GIT_URL" ]; then printf '%s\n' "APP3_GIT_URL must be set && VARSAREOK=false"; fi
+if  [ -z "$APP2_GIT_URL" ]; then printf '%s\n' "APP2_GIT_URL must be set && VARSAREOK=false"; fi
+if  [ -z "$APP3_GIT_URL" ]; then printf '%s\n' "APP3_GIT_URL must be set && VARSAREOK=false"; fi
 
 
 if [[ ${VARSAREOK} == "true" ]]; then

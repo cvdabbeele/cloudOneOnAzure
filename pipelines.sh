@@ -1,10 +1,4 @@
 #!/bin/bash
-# update: 220311ß16Ö46
-# . ./pipelines.sh ; ./pushWithHighSecurityThresholds.sh  DEPLOYMENT OK (x2), but first pipeline run fails due to missing ${DSSCxxxx  variables
-
-# . ./pushWithHighSecurityThresholds.sh  ========DEPLOYMENT OK 
-# up AFTER UP   . ./up.sh ; ./pushWithHighSecurityThresholds.sh  ====DEPLOMENT FAILS
-# initial . ./up.sh ==========  deployment FAILS
 
 printf '%s\n' "------------------------------"
 printf '%s\n' "   Creating Azure pipelines   "
@@ -23,7 +17,6 @@ function createPipeline {
   export ENVIRONMENT="${1}"
   #echo ENVIRONMENT=$ENVIRONMENT
   
-
   # cd into app
   cd ${APPSDIR}/${1}
 
@@ -85,13 +78,6 @@ function createPipeline {
    DUMMY=`git commit -m "Pipeline configuration still in progress.  This run will fail" 2>/dev/null`
    [ ${VERBOSE} -eq 1 ] && DUMMY=`git push azure master`
    DUMMY=`git push azure master 2>/dev/null`
-
-  #printf '%s\n' "--------------------------3. Testing Docker Login to ACR, using Username {ACR_USERNAME} and ACR_PASSWORD (redacted)"
-  #docker login  ${AZURE_PROJECT_UID}.azurecr.io -u ${ACR_USERNAME} -p ${ACR_PASSWORD} 
-
-  #Testing Docker Login to ACR, using Service Principal SP_APP_ID and SP_PASSWD"
-  #printf '%s\n' "--------------------------4a.Testing Docker Login to ACR, using Service Principal SP_APP_ID and SP_PASSWD"
-  #docker login ${AZURE_PROJECT_UID}.azurecr.io  -u $SP_APP_ID  -p $SP_PASSWD
 
   # create azure devops pipeline for ${1}
   printf "%s" "Creating azure devops pipeline for ${1}"
@@ -169,28 +155,13 @@ EOF
   az devops service-endpoint list --detect true --project ${C1PROJECT}  > serviceEndpointsAfterPipeline.json
   #printf '%s\n' "Saved to serviceEndpointsAfterPipeline.json"
 
-  #printf '%s\n' "--------------------------4b.Testing Docker Login to ACR, using Service Principal SP_APP_ID and SP_PASSWD"
-  #docker login ${AZURE_PROJECT_UID}.azurecr.io  -u $SP_APP_ID  -p $SP_PASSWD
-
   #returning to the main project directory
   cd ${PROJECTDIR}
 
 }  ## end of function createPipeline
 
-
-
-
-
-
-
-
-
-
-
-
 #set default project
 #az devops configure --default project=${AZURE_ORGANIZATION_URL}
-
 export DSSC_HOST=`kubectl get svc -n ${DSSC_NAMESPACE} proxy -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
 export DSSC_HOST=${DSSC_HOST//./-}.nip.io
 
@@ -385,7 +356,6 @@ printf '%s' "Creating new ServiceEndpoint for kubernetes access"
 export SERVICE_ENDPOINT_NAME="serviceConnectionForACR${AZURE_ACR}"
 export SERVICECONNECTIONFORKUBERNETES=""
 export SERVICECONNECTIONFORKUBERNETES=`az devops service-endpoint create --service-endpoint-configuration service-endpoint-kubernetes.json --organization ${AZURE_ORGANIZATION_URL} --project "${C1PROJECT}" --verbose | jq -r ".id"`
-#echo SERVICECONNECTIONFORKUBERNETES="${SERVICECONNECTIONFORKUBERNETES}"
 if [[ ! -z ${SERVICECONNECTIONFORKUBERNETES}  ]];then
   printf '%s\n' " id=${SERVICECONNECTIONFORKUBERNETES}"
 else
@@ -396,10 +366,7 @@ fi
 
 #az devops invoke --http-method patch --area build --resource authorizedresources --debug --route-parameters project=${C1PROJECT} --api-version 5.0-preview --in-file ./service-endpoint-kubernetes.json --encoding ascii
 
-
-
-
 createPipeline ${APP1}
-#createPipeline ${APP2}
-#createPipeline ${APP3}
+createPipeline ${APP2}
+createPipeline ${APP3}
 

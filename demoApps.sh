@@ -91,79 +91,6 @@ else
   printf '%s\n' "  ERROR: failed to login to ACR"
 fi
 
-# Creating Service Principal to register ACR with AAD 
-# this is required to create login-credentials for SmartCheck for logging in to ACR 
-# Default permissions are for docker pull access. Modify the '--role' argument 
-# to one of the following:
-# acrpull:     pull only
-# acrpush:     push and pull
-# owner:       push, pull, and assign roles
-
-# SERVICE_PRINCIPAL_NAME: Must be unique 
-#####SERVICE_PRINCIPAL_NAME=${AZURE_PROJECT_UID}
-
-#check if old service principal exists and delete it
-#####if [ ! -z "${AZURE_PROJECT_UID_OLD}" ];then  
-#####  #running the delete with empty AZURE_PROJECT_UID_OLD would delete ALL your SPs !!!
-#####  SPs=(`az ad sp list --show-mine | jq -r ".[]| select (.appDisplayName == \"${AZURE_PROJECT_UID_OLD}\").appId"`) && for SP in ${SPs[@]}; do echo "Deleting old Service Principal ${SP}"  && az ad sp delete --id ${SP}; done
-#####fi
-
-#check if current service principal exists and delete it
-#####if [ ! -z "${AZURE_PROJECT_UID}" ];then  
-#####  #running the delete with empty AZURE_PROJECT_UID would delete ALL your SPs !!!
-#####  SPs=(`az ad sp list --show-mine | jq -r ".[]| select (.appDisplayName == \"${AZURE_PROJECT_UID}\").appId"`) && for SP in ${SPs[@]}; do echo "Deleting old Service Principal ${SP}"  && az ad sp delete --id ${SP}; done
-##### fi
-
-##### #create new ServicePrincipal (and password in the same action)
-##### printf '%s\n' "Creating new Service Principal ${AZURE_PROJECT_UID} (including a password)"
-##### export SP_PASSWD=$(az ad sp create-for-rbac --name ${AZURE_PROJECT_UID} --scopes $ACR_REGISTRY_ID --role owner --query password --output tsv )
-##### if [ -z "${SP_PASSWD}" ]; then
-#####   printf '%s\n' "Failed to create a new Service Principal"  
-#####   printf '%s\n' "----------------------------------------"
-#####   printf '%s\n' "Error: The directory object quota limit for the Principal has been exceeded"
-#####   printf '%s\n' "probably you still have old SPs that should be deleted"
-#####   printf '%s\n' "this is the list of you Service Principals"
-#####   printf '%s\n' "------------------------------------------"
-#####   az ad sp list --show-mine | jq -r ".[]| [.appDisplayName, .appId, .oauth2Permissions[].adminConsentDescription]| @tsv"
-#####   printf '%s\n' "Delete the ones that you no longer need."
-#####   printf '%s\n' "Use the following commands:"
-#####   printf '%s\n' "1. Define a variable with (sub-)string of the name of the SPs to be deleted"
-#####   printf '%s\n' "SPsToDelete=\"testSP\""
-#####   printf '%s\n' "1. Delete them as follows:"
-    # SPs=(`az ad sp list --show-mine | jq -r ".[]| select (.appDisplayName | contains(\"${SPsToDelete}\")).appId"`) && for SP in ${SPs[@]}; do echo "deleting ${SP}"  && az ad sp delete --id ${SP}; done
-#####   printf '%s\n' "SPs=(\`az ad sp list --show-mine | jq -r \".[]| select (.appDisplayName | contains(\\\"\${SPsToDelete}\\\")).appId\"\`) && for SP in \${SPs[@]}; do echo \"deleting \${SP}\"  && az ad sp delete --id \${SP}; done"
-#####   read  -n 1 -p "Press CTRL-C to break the script, it will fail anyway" dummyinput
-##### else
-#####   printf '%s\n' "Service Principal created" 
-##### fi
-
-##### printf '%s\n' "SP_PASSWD=[REDACTED]"  #${SP_PASSWD}"
-##### #printf '%s\n' "Getting Service Principal Id"
-##### export SERVICE_PRINCIPAL_ID=$(az ad sp list --display-name ${AZURE_PROJECT_UID} | jq -r ".[].objectId")
-##### printf '%s\n' "Service Principal Id=${SERVICE_PRINCIPAL_ID}"
-##### export SP_APP_ID=$(az ad sp list --display-name ${AZURE_PROJECT_UID} | jq -r ".[].appId")
-##### echo SP_APP_ID=$SP_APP_ID
-##### printf '%s\n' "Testing Docker Login to ACR, using Service Principal SP_APP_ID and SP_PASSWD"
-##### docker login ${AZURE_PROJECT_UID}.azurecr.io  -u $SP_APP_ID  -p $SP_PASSWD
-
-
-# Output the service principal's credentials; use these in your services and
-# applications to authenticate to the container registry.
-## echo "SERVICE_PRINCIPAL_NAME=$SERVICE_PRINCIPAL_NAME"
-## echo "Service principal ID: $SERVICE_PRINCIPAL_ID"           #something like:5763d5a-77db-4af8-8f63-f1d5e4318f19
-## echo "Service principal password: $SP_PASSWD"     #something like:tKsc-RTbt34i2jaPR94g9X5pWtQChg~2IE
-## echo AZURE_ACR_REPO_ID=$AZURE_ACR_REPO_ID
-## echo AZURE_ACR_LOGINSERVER=$AZURE_ACR_LOGINSERVER
-## echo ACR_REGISTRY_ID=$ACR_REGISTRY_ID
-
-
-
-
-
-
-
-
-
 # AZ devops Project
 # Creating an AZ devops project also creates a git repo with the same name
 ## pipelines also reside under this AzureDevOpsProject (they will be created in pipelines.sh)
@@ -192,11 +119,11 @@ mkdir -p  ${APPSDIR}
 printf '%s\n' "Deploying ${APP1} (from ${APP1_GIT_URL})"
 setupApp ${APP1} ${APP1_GIT_URL}
 
-#printf '%s\n' "Deploying ${APP2} (from ${APP2_GIT_URL})"
-#setupApp ${APP2} ${APP2_GIT_URL}
+printf '%s\n' "Deploying ${APP2} (from ${APP2_GIT_URL})"
+setupApp ${APP2} ${APP2_GIT_URL}
 
-#printf '%s\n' "Deploying ${APP3} (from ${APP3_GIT_URL})"
-#setupApp ${APP3} ${APP3_GIT_URL}
+printf '%s\n' "Deploying ${APP3} (from ${APP3_GIT_URL})"
+setupApp ${APP3} ${APP3_GIT_URL}
 
 cd $PROJECTDIR
 

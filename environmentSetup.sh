@@ -191,12 +191,13 @@ az devops configure --default project=${AZURE_ORGANIZATION_URL}
 # check if the defined AZURE_SUBSCRIPTION_NAME exists
 [ ${VERBOSE} -eq 1 ] && printf '%s\n' "Checking Azure subscription..."
 #TODO fix subscription names with spaces
-AZ_SUBSCRIPTIONS=(`az account list | jq -r ".[].name"`)
+readarray -t AZ_SUBSCRIPTIONS <<< `az account list | jq -r ".[].name"`
+#AZ_SUBSCRIPTIONS=(`az account list | jq -r ".[].name"`)
 [ ${VERBOSE} -eq 1 ] &&  printf '%s\n' "AZ_SUBSCRIPTIONS=${AZ_SUBSCRIPTIONS[@]}"
 export AZ_SUBSCRIPTION_OK="false"
-for AZ_SUBSCRIPTION in ${AZ_SUBSCRIPTIONS[@]}; do 
-    [ ${VERBOSE} -eq 1 ] && printf '%s\n' "${AZ_SUBSCRIPTION}"
-    if [[ ${AZ_SUBSCRIPTION} = ${AZURE_SUBSCRIPTION_NAME} ]];then
+for i in ${!AZ_SUBSCRIPTIONS[@]}; do 
+    [ ${VERBOSE} -eq 1 ] && printf '%s\n' "${i} ${AZ_SUBSCRIPTIONS[${i}]}"
+    if [[ ${AZ_SUBSCRIPTIONS[${i}]} = ${AZURE_SUBSCRIPTION_NAME} ]];then
       AZ_SUBSCRIPTION_OK="true"
     fi
 done 
@@ -262,8 +263,8 @@ if  [ -z "$DSSC_HOST" ]; then printf '%s\n' "DSSC_HOST must be set" && VARSAREOK
 if  [ -z "$DSSC_REGUSER" ]; then printf '%s\n' "DSSC_REGUSER must be set" && VARSAREOK=false; fi
 
 if  [ -z "$APP1_GIT_URL" ]; then printf '%s\n' "APP1_GIT_URL must be set" && VARSAREOK=false; fi
-if  [ -z "$APP2_GIT_URL" ]; then printf '%s\n' "APP2_GIT_URL must be set" && VARSAREOK=false; fi
-if  [ -z "$APP3_GIT_URL" ]; then printf '%s\n' "APP3_GIT_URL must be set" && VARSAREOK=false; fi
+#if  [ -z "$APP2_GIT_URL" ]; then printf '%s\n' "APP2_GIT_URL must be set" && VARSAREOK=false; fi
+#if  [ -z "$APP3_GIT_URL" ]; then printf '%s\n' "APP3_GIT_URL must be set" && VARSAREOK=false; fi
 
 if [[ ${VARSAREOK} == "true" ]]; then
   echo "All variables checked out ok"

@@ -2,7 +2,7 @@
 export CURRENTAPP="moneyx"
 STARTDIR=`pwd`
 cd ${APPSDIR}/${CURRENTAPP}
-#set all thresholds in the app from 0 to 300
+#set all allowed thresholds in the pipeline from 0 to 300
 sed -i 's/": 0/": 300/g'  azure-pipelines.yml #change the security thresholds in the ${CURRENTAPP} app
 echo " "  >>README.md  #ensure that we have a change, regardless if the above sed command made anychanges
 echo "pushing to internal master branch"  

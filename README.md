@@ -1,3 +1,5 @@
+
+# This project has been deprecated in June 2022
 # Cloud One DevOps on Azure
 
 This repo contains a shell script that:
